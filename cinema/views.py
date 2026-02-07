@@ -1,4 +1,7 @@
 from datetime import datetime
+from drf_spectacular.utils import (extend_schema,
+                                   extend_schema_view,
+                                   OpenApiParameter)
 
 from django.db.models import F, Count
 from rest_framework import viewsets, mixins, status
@@ -61,6 +64,27 @@ class CinemaHallViewSet(
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
 
+@extend_schema_view(
+    list=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "genre",
+                type={"type": "array", "items": {"type": "integer"}},
+                description="Filter by genre ids (ex. ?genres=1,2,5)",
+            ),
+            OpenApiParameter(
+                "actors",
+                type={"type": "array", "items": {"type": "integer"}},
+                description="Filter by actor ids (ex. ?actors=1,2,5)",
+            ),
+            OpenApiParameter(
+                "title",
+                type=str,
+                description="Filter by movie title",
+            ),
+        ]
+    )
+)
 class MovieViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
@@ -128,6 +152,22 @@ class MovieViewSet(
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema_view(
+    list=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "date",
+                type=datetime,
+                description="Filter by date (ex. ?date=2026-10-05).",
+            ),
+            OpenApiParameter(
+                "movie",
+                type=int,
+                description="Filter by movie id (ex. ?movie=1).",
+            ),
+        ]
+    )
+)
 class MovieSessionViewSet(viewsets.ModelViewSet):
     queryset = (
         MovieSession.objects.all()
